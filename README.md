@@ -1,5 +1,7 @@
 # Banking journey · TypeScript + Playwright
 
+[![Portfolio checks](https://github.com/TiberyMore/banking-journey-playwright/actions/workflows/tests.yml/badge.svg)](https://github.com/TiberyMore/banking-journey-playwright/actions/workflows/tests.yml)
+
 A small, reproducible **learning portfolio** for testing a banking-style client portal. The test target is a synthetic local service, not a real bank. No employer code, customer records, real credentials or external banking APIs are used.
 
 An AI-assisted project for Anna Aleksandrova, focused on test design, data consistency, isolated fixtures and actionable failure diagnostics. Architecture choices and scope are documented so reviewers can assess the tests as well as the results.
@@ -65,7 +67,7 @@ docs/interview-walkthrough-ru.md
 
 ## CI
 
-The included GitHub Actions workflow installs Chromium, checks TypeScript, runs the suite and verifies the negative control. HTML/JUnit reports and diagnostic artifacts are uploaded even on failure. **A local passing run does not imply that GitHub Actions has run**; the workflow needs to execute after the repository is published.
+The GitHub Actions workflow installs Chromium, checks TypeScript, runs the suite and verifies the negative control. HTML/JUnit reports and diagnostic artifacts are uploaded even on failure. See [workflow runs](https://github.com/TiberyMore/banking-journey-playwright/actions/workflows/tests.yml) for the current result. The initial Linux CI run passed as well as the Windows local verification below.
 
 ## Local verification
 
