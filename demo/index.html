@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Synthetic Bank — QA Demo</title>
+<style>body{font:16px system-ui;max-width:720px;margin:48px auto;padding:0 24px;color:#162c35;background:#f6f8f9}section{background:white;padding:24px;margin:24px 0;border:1px solid #d6dfe3}label{display:block;margin:16px 0}input,button{font:inherit;padding:10px}input{display:block}button{cursor:pointer;background:#164f60;color:white;border:0}li{margin:12px 0}[role=alert]{color:#a32323}</style></head>
+<body><h1>Synthetic Bank</h1><p>Local QA portfolio demo. Fictional accounts and applications only.</p>
+<section id="login"><h2>Sign in</h2><form id="login-form"><label>Email<input name="email" type="email" required autocomplete="username"></label><label>Password<input name="password" type="password" required autocomplete="current-password"></label><button>Sign in</button></form></section>
+<section id="portal" hidden><h2>Client portal</h2><p>Account: <span data-testid="account-email"></span></p><p>Available balance: <strong data-testid="balance"></strong></p>
+<form id="application-form"><label>Application amount (USD)<input name="amount" type="number" min="100" max="10000" step="0.01" required></label><button>Submit application</button></form>
+<p role="status" id="status"></p><h3>Your applications</h3><ul aria-label="Applications" id="applications"></ul><button id="refresh">Refresh applications</button> <button id="logout">Sign out</button></section>
+<p role="alert" id="error"></p>
+<script>
+const $ = selector => document.querySelector(selector);
+const money = value => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value / 100);
+async function api(path, options = {}) {
+  const response = await fetch(path, { ...options, headers: { 'Content-Type': 'application/json', ...options.headers } });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+function error(message) { $('#error').textContent = message; }
+async function applications() {
+  const items = await api('/api/applications');
+  $('#applications').replaceChildren(...items.map(item => {
+    const li = document.createElement('li');
+    li.textContent = `${money(item.amountMinor)} — ${item.status}`;
+    li.dataset.applicationId = item.id;
+    return li;
+  }));
+}
+$('#login-form').onsubmit = async event => {
+  event.preventDefault(); error('');
+  try {
+    const form = new FormData(event.target);
+    await api('/api/login', { method: 'POST', body: JSON.stringify(Object.fromEntries(form)) });
+    const data = await api('/api/account');
+    $('[data-testid="account-email"]').textContent = data.email;
+    $('[data-testid="balance"]').textContent = money(data.balanceMinor);
+    await applications();
+    $('#login').hidden = true; $('#portal').hidden = false;
+  } catch (e) { error(e.message); }
+};
+$('#application-form').onsubmit = async event => {
+  event.preventDefault(); error(''); $('#status').textContent = '';
+  const button = event.target.querySelector('button'); button.disabled = true;
+  try {
+    const amountMinor = Math.round(Number(new FormData(event.target).get('amount')) * 100);
+    await api('/api/applications', { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ amountMinor }) });
+    await applications(); $('#status').textContent = 'Application submitted';
+  } catch (e) { error(e.message); } finally { button.disabled = false; }
+};
+$('#refresh').onclick = async () => { error(''); try { await applications(); } catch(e) { error(e.message); } };
+$('#logout').onclick = async () => {
+  try { await api('/api/logout', { method: 'POST' }); $('#portal').hidden = true; $('#login').hidden = false; $('#login-form').reset(); $('#applications').replaceChildren(); $('#status').textContent = ''; error(''); }
+  catch(e) { error(e.message); }
+};
+</script></body></html>

@@ -1,0 +1,21 @@
+{
+  "name": "banking-journey-playwright",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-assisted learning portfolio: banking UI and API test automation against a local synthetic service",
+  "type": "module",
+  "scripts": {
+    "start": "node demo/server.mjs",
+    "test": "playwright test",
+    "test:api": "playwright test --project=api",
+    "test:ui": "playwright test --project=chromium",
+    "test:negative-control": "node scripts/negative-control.mjs",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}
